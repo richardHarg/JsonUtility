@@ -14,6 +14,28 @@ namespace RLH.JsonUtility.Tests
             }
         }
         [Fact]
+        public void DefaultName_RelativePathInFIleName()
+        {
+            using (IJsonFileParser parser = new JsonFileParser())
+            {
+                TestClass parsedClass = parser.Parse<TestClass>("data\\testclass.json");
+
+                Assert.NotNull(parsedClass);
+                Assert.Equal("data\\TestClass", parsedClass.NameOfTestFile);
+            }
+        }
+        [Fact]
+        public void DefaultName_FullPathInFileName()
+        {
+            using (IJsonFileParser parser = new JsonFileParser())
+            {
+                TestClass parsedClass = parser.Parse<TestClass>(@"C:\Users\R\source\repos\JsonUtility\tests\RLH.JsonUtility.Tests\data\testclass.json");
+
+                Assert.NotNull(parsedClass);
+                Assert.Equal("data\\TestClass", parsedClass.NameOfTestFile);
+            }
+        }
+        [Fact]
         public void DefaultName_RelativePath()
         {
             using (IJsonFileParser parser = new JsonFileParser("data"))
@@ -53,7 +75,7 @@ namespace RLH.JsonUtility.Tests
         [InlineData("data","testclass")]
         [InlineData("data\\","\\testclass")]
         [InlineData("data\\", "\\testclass.json")]
-        [InlineData("data", "testclass.json")]
+        [InlineData("\\data", "testclass.json")]
         [InlineData("data\\", "testclass.json")]
         public void Path_Name_Variations_Work(string path,string fileName)
         {

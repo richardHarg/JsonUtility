@@ -26,7 +26,7 @@ namespace RLH.JsonUtility
             {
                 throw new ArgumentException($"'{nameof(basePath)}' cannot be null or whitespace.", nameof(basePath));
             }
-
+            basePath = basePath.Trim('\\');
             _basePath = Path.IsPathRooted(basePath) ? basePath : Path.Combine(Environment.CurrentDirectory, basePath);
         }
 
@@ -45,10 +45,23 @@ namespace RLH.JsonUtility
         /// <typeparam name="TClass">Type of class to deserialize</typeparam>
         /// <param name="fileName">(Optional) exact file name, if none provided the name of 'TClass' is used</param>
         /// <returns>New TClass from file</returns>
-        public TClass Parse<TClass>(string? fileName = null) where TClass : class
+        public TClass Parse<TClass>(string fileName) where TClass : class
         {
-            return JsonConvert.DeserializeObject<TClass>(ReadAllFromFile(GetFileNameWithExtension<TClass>(fileName)));
+            return JsonConvert.DeserializeObject<TClass>(ReadAllFromFile(fileName));
         }
+        /// <summary>
+        /// Deserializes and returns 'TClass' type
+        /// </summary>
+        /// <typeparam name="TClass">Type of class to deserialize</typeparam>
+        /// <param name="fileName">(Optional) exact file name, if none provided the name of 'TClass' is used</param>
+        /// <returns>New TClass from file</returns>
+        public TClass Parse<TClass>() where TClass : class
+        {
+            return JsonConvert.DeserializeObject<TClass>(ReadAllFromFile(typeof(TClass).Name));
+        }
+
+
+
 
 
         /// <summary>
@@ -57,11 +70,20 @@ namespace RLH.JsonUtility
         /// <typeparam name="TClass">Type of class to deserialize</typeparam>
         /// <param name="fileName">(Optional) exact file name, if none provided the name of 'TClass' is used</param>
         /// <returns>IEnumerable of TClass from file</returns>
-        public IEnumerable<TClass> ParseCollection<TClass>(string? fileName = null) where TClass : class
+        public IEnumerable<TClass> ParseCollection<TClass>(string fileName) where TClass : class
         {
-            return JsonConvert.DeserializeObject<TClass[]>(ReadAllFromFile(GetFileNameWithExtension<TClass>(fileName)));
+            return JsonConvert.DeserializeObject<TClass[]>(ReadAllFromFile(fileName));
         }
-
+        /// <summary>
+        /// Deserializes and returns a collection of 'TClass' type
+        /// </summary>
+        /// <typeparam name="TClass">Type of class to deserialize</typeparam>
+        /// <param name="fileName">(Optional) exact file name, if none provided the name of 'TClass' is used</param>
+        /// <returns>IEnumerable of TClass from file</returns>
+        public IEnumerable<TClass> ParseCollection<TClass>() where TClass : class
+        {
+            return JsonConvert.DeserializeObject<TClass[]>(ReadAllFromFile(typeof(TClass).Name));
+        }
 
 
         /// <summary>
@@ -75,14 +97,8 @@ namespace RLH.JsonUtility
         /// <exception cref="NullReferenceException">Thrown if the file cannot be found at the configured path</exception>
         private string ReadAllFromFile(string fileName)
         {
-            // Check that a filename value has been passed
-            if (fileName == null)
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
             // Create the full path from the base + filename
-            var path = Path.Combine(_basePath, fileName);
+            var path = Path.Combine(_basePath, GetFileNameWithExtension(fileName));
 
             // If this file exists read to end and return string
             if (File.Exists(path) == true)
@@ -114,12 +130,11 @@ namespace RLH.JsonUtility
         /// <typeparam name="TClass">Type of class being parsed, used as the fileName if none provided</typeparam>
         /// <param name="fileName">fileName provided by user, can be blank</param>
         /// <returns>string representing the fileName WITH .json extension</returns>
-        private string GetFileNameWithExtension<TClass>(string fileName)
+        private string GetFileNameWithExtension(string fileName)
         {
-            // if NO filename has been passed set as the name of the class passed through
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                fileName = typeof(TClass).Name;
+                throw new ArgumentException($"'{nameof(fileName)}' cannot be null or whitespace.", nameof(fileName));
             }
             fileName = fileName.Trim('\\');
             return Path.HasExtension(fileName) ? fileName : $"{fileName}.json";
